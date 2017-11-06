@@ -1,6 +1,7 @@
 # Usubstractbedgraphs
 Substracts two bedgraph files
 
+Example usage:
 python Usubtractbedgraphs.py -f1 test1.bedgraph -f2 test2.bedgraph -o difference.bedgraph
 
 options:
