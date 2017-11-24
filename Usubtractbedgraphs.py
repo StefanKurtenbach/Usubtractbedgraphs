@@ -1,8 +1,9 @@
-# Usubstractbedgraphs v2.6
+# Usubstractbedgraphs v2.7
 
 import argparse
 import sys
 import os
+import numpy
 from array import *
 
 #get arguments from command line
@@ -58,7 +59,7 @@ def substract (file1, file2, newfile):
                         line_split = line.split("\t")
                         line_split[3] = line_split[3].replace("\n", "")
                         if line_split[0] == current_chromosome:
-                            if float(line_split[3]) > 0:
+                            if numpy.absolute(float(line_split[3])) > 0:
                                 for o in range(int(line_split[2]) - int(line_split[1])):
                                     coord = o + int(line_split[1])
                                     if x == 0:
@@ -89,11 +90,8 @@ def substract (file1, file2, newfile):
             if temp_entry != []:
                 output2.append(temp_entry)
 
-            print(output2)
-
             with open(newfile, "a") as f:
                 for row in output2:
-                    print("a")
                     f.write(str(row[0]) + "\t" + str(row[1]) + "\t" + str(row[2]) + "\t" + str(row[3]) + "\n")
 
 ############################################################################
