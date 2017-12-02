@@ -1,4 +1,4 @@
-# Usubstractbedgraphs v2.7
+# Usubstractbedgraphs v3
 
 import argparse
 import sys
@@ -6,12 +6,12 @@ import os
 import numpy
 from array import *
 
-#get arguments from command line
+# get arguments from command line
 parser = argparse.ArgumentParser(description='Uaveragebedgraphs_args')
 parser.add_argument('-o','--output', help='name of output file', required=True, type=str)
 parser.add_argument('-f1','--file1', help='file1', required=True, type=str)
 parser.add_argument('-f2','--file2', help='file2', required=True, type=str)
-parser.add_argument('-d','--delete', help='delete all overlap with file 2', required=False, type=str, default = "N")
+parser.add_argument('-d','--delete', help='delete all overlap with file 2 if set to "Y" ', required=False, type=str, default = "N")
 
 args = vars(parser.parse_args())
 file1 = args['file1']
@@ -30,9 +30,10 @@ def substract (file1, file2, newfile):
         with open(file) as f:
             for line in f:
                 line_split = line.split("\t")
+                if line_split[0][0:3] == "chr": # account for different formats with and without "chr"
+                    line_split[0] = line_split[0][3:]
                 if line_split[0] not in chromosomes:
                     chromosomes.append(line_split[0])
-
     done = "no"
     while done == "no":
         try:
@@ -46,10 +47,12 @@ def substract (file1, file2, newfile):
             with open(file) as f:
                 for line in f:
                     line_split = line.split("\t")
+                    if line_split[0][0:3] == "chr": # account for different formats with and without "chr"
+                        line_split[0] = line_split[0][3:]
                     if line_split[0] == current_chromosome:
                         if int(line_split[2]) > stop:
                             stop = int(line_split[2])
-        if stop > 0:  #continue only if values in chromosome
+        if stop > 0:  # continue only if values in chromosome
             output = array('f', [0] * stop)
 
 #substract
@@ -58,30 +61,29 @@ def substract (file1, file2, newfile):
                     for line in f:
                         line_split = line.split("\t")
                         line_split[3] = line_split[3].replace("\n", "")
+                        if line_split[0][0:3] == "chr":  # account for different formats with and without "chr"
+                            line_split[0] = line_split[0][3:]
                         if line_split[0] == current_chromosome:
-                            if numpy.absolute(float(line_split[3])) > 0:
-                                for o in range(int(line_split[2]) - int(line_split[1])):
-                                    coord = o + int(line_split[1])
-                                    if x == 0:
-                                        output[coord] = float(line_split[3])
-                                    elif x == 1:
-                                        if deleteall == "N":
-                                            output[coord] = output[coord] - float(line_split[3])
-                                        elif deleteall == "Y":
-                                            output[coord] = 0
-                                        else:
-                                            print("Error: -d has to be N or Y")
-                                            sys.exit()
+                            for o in range(int(line_split[2]) - int(line_split[1])):
+                                coord = o + int(line_split[1])
+                                if x == 0:
+                                    output[coord] = float(line_split[3])
+                                elif x == 1:
+                                    if deleteall == "N":
+                                        output[coord] = output[coord] - float(line_split[3])
+                                    elif deleteall == "Y":
+                                        output[coord] = 0
+                                    else:
+                                        print("Error: -d has to be N or Y")
+                                        sys.exit()
 
-#concatenate entries with same value
+# concatenate entries with same value
             output2 = []
             temp_entry = []
             for x, value in enumerate(output):
                 if value != 0:
-                    if temp_entry == []:
-                        temp_entry = [current_chromosome, x, x + 1, value]
-                    elif temp_entry[3] == value:
-                        temp_entry[2] += 1
+                    if temp_entry == []: temp_entry = [current_chromosome, x, x + 1, value]
+                    elif temp_entry[3] == value: temp_entry[2] += 1
                     elif temp_entry[3] != value:
                         output2.append(temp_entry)
                         temp_entry = [current_chromosome, x, x + 1, value]
